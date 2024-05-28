@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %} Assigner Objet {% endblock %}
+{% block body %}
+<div class="container">
+    <form method="POST">
+        {{ form_assign.hidden_tag() }}
+        <div class="form-group">
+            {{ form_assign.nom_genre_update_wtf.label }}
+            {{ form_assign.nom_genre_update_wtf(class="form-control", readonly=True) }}
+        </div>
+        <div class="form-group">
+            {{ form_assign.nom_personne_update_wtf.label }}
+            {{ form_assign.nom_personne_update_wtf(class="form-control") }}
+        </div>
+        <input type="hidden" name="id_genre_update" value="{{ id_genre_update }}">
+        <input type="hidden" name="id_personne" value="{{ id_personne }}">
+        {% if confirm %}
+            <div class="alert alert-warning" role="alert">
+                Cet objet est déjà attribué à quelqu'un. Voulez-vous supprimer l'attribution et l'attribuer à quelqu'un d'autre ?
+                <button type="submit" name="confirm" value="yes" class="btn btn-danger">Oui</button>
+                <a href="{{ url_for('genres_afficher', order_by='ASC', id_genre_sel=0) }}" class="btn btn-secondary">Non</a>
+            </div>
+        {% else %}
+            {{ form_assign.submit(class="btn btn-primary") }}
+        {% endif %}
+    </form>
+</div>
+{% endblock %}

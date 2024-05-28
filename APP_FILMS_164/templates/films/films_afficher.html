@@ -3,6 +3,9 @@
 {% block body %}
 <div class="container">
 	<div class="col-md-12">
+		<div style="margin-top: 50px; margin-bottom: 50px">
+			<a class="btn btn-primary" href="{{ url_for('film_add_wtf') }}" role="button">Nouvelle personne</a>
+		</div>
 		<table class="table table-responsive-sm">
             {% if data %}
 				<thead>
@@ -14,16 +17,12 @@
 						  Nom
 						</th>
 						<th class="" >
-						  Durée
+						  prénom
 						</th>
 						<th class="" >
-						  Date de sortie
-						</th>
+						  mail
 						<th class="" >
-						  Description
-						</th>
-						<th class="" >
-						  Affiche
+						  service
 						</th>
 					</tr>
 				</thead>
@@ -32,40 +31,26 @@
 			<tbody>
 				<tr>
 					  <th class="align-middle">
-						  {{ row.id_film }}
+						  {{ row.id_personne }}
 					  </th>
 					  <th class="align-middle">
-						{{ row.nom_film }}
+						{{ row.nom }}
 					  </th>
 					  <th class="align-middle">
-						{{ row.duree_film|default("", True) }}
+						{{ row.prenom }}
 					  </th>
 					  <th class="align-middle">
-						{{ row.date_sortie_film|default("", True) }}
+						{{ row.mail_entreprise }}
 					  </th>
 					  <th class="align-middle">
-						{{ row.description_film|default("", True) }}
+						{{ row.service }}
 					  </th>
 					  <th class="align-middle">
-						<img class="img" src={{ row.cover_link_film|default(None, True) }} style="border: 0;display:block; width:150px; max-height:auto;"  alt = "image masquée FFP8 (in COVID-19 Memory) (absente) mod 164">
+						<a class="btn btn-warning" href="{{ url_for('film_update_wtf', id_film_btn_edit_html=row.id_personne) }}" role="button">Edit</a>
 					  </th>
 					  <th class="align-middle">
-						<a class="btn btn-primary" href="{{ url_for('avertissement_sympa_pour_geeks') }}" role="button">Ajouter</a>
+						<a class="btn btn-danger" href="{{ url_for('film_delete_wtf', id_film_btn_delete_html=row.id_personne ) }}" role="button">Delete</a>
 					  </th>
-					  <th class="align-middle">
-						<a class="btn btn-warning" href="{{ url_for('film_update_wtf', id_film_btn_edit_html=row.id_film) }}" role="button">Edit</a>
-					  </th>
-					  <th class="align-middle">
-						<a class="btn btn-danger" href="{{ url_for('avertissement_sympa_pour_geeks') }}" role="button">Delete</a>
-					  </th>
-					<tr>
-						<td class="align-middle">
-							<a class="btn btn-warning" href="{{ url_for('edit_genre_film_selected', id_film_genres_edit_html=row.id_film) }}" role="button">Modifier</a>
-						</td>
-						<td class="align-middle" colspan="5">
-							{{ row.GenresFilms|default("PAS DE GENRES", True) }}
-						</td>
-					</tr>
 				</tr>
 			</tbody>
 			{% else %}

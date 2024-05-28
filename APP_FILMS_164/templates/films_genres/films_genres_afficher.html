@@ -1,87 +1,114 @@
 {% extends "base.html" %}
-{% block title %} Afficher FILMS {% endblock %}
+{% block title %} Afficher personne {% endblock %}
 {% block body %}
 <div class="container">
-	<div class="col-md-12">
-		<table class="table table-responsive-sm">
+    <div class="col-md-12">
+        <div style="margin-top: 50px; margin-bottom: 50px">
+            <a class="btn btn-primary" href="{{ url_for('film_add_wtf') }}" role="button">Nouvelle personne</a>
+        </div>
+        <table class="table table-responsive-sm">
             {% if data %}
-				<thead>
-					<tr>
-						<th class="" >
-						  Id
-						</th>
-						<th class="" >
-						  Nom
-						</th>
-						<th class="" >
-						  Durée
-						</th>
-						<th class="" >
-						  Date de sortie
-						</th>
-						<th class="" >
-						  Description
-						</th>
-						<th class="" >
-						  Affiche
-						</th>
-					</tr>
-				</thead>
-			{% endif %}
-			{% for row in data %}
-			<tbody>
-				<tr>
-					  <th class="align-middle">
-						  {{ row.id_film }}
-					  </th>
-					  <th class="align-middle">
-						{{ row.nom_film }}
-					  </th>
-					  <th class="align-middle">
-						{{ row.duree_film|default("", True) }}
-					  </th>
-					  <th class="align-middle">
-						{{ row.date_sortie_film|default("", True) }}
-					  </th>
-					  <th class="align-middle">
-						{{ row.description_film|default("", True) }}
-					  </th>
-					  <th class="align-middle">
-						<img class="img" src={{ row.cover_link_film|default(None, True) }} style="border: 0;display:block; width:150px; max-height:auto;"  alt = "image masquée FFP8 (in COVID-19 Memory) (absente) mod 164">
-					  </th>
-					  <th class="align-middle">
-						<a class="btn btn-primary" href="{{ url_for('film_add_wtf') }}" role="button">Ajouter</a>
-					  </th>
-					  <th class="align-middle">
-						<a class="btn btn-warning" href="{{ url_for('film_update_wtf', id_film_btn_edit_html=row.id_film) }}" role="button">Edit</a>
-					  </th>
-					  <th class="align-middle">
-						<a class="btn btn-danger" href="{{ url_for('film_delete_wtf', id_film_btn_delete_html=row.id_film ) }}" role="button">Delete</a>
-					  </th>
-					<tr>
-						<td class="align-middle">
-							<a class="btn btn-warning" href="{{ url_for('edit_genre_film_selected', id_film_genres_edit_html=row.id_film) }}" role="button">Modifier</a>
-						</td>
-						<td class="align-middle" colspan="5">
-							{{ row.GenresFilms|default("PAS DE GENRES", True) }}
-						</td>
-					</tr>
-				</tr>
-			</tbody>
-			{% else %}
-				<tbody>
-					<tr>
-						<td>
-							Aucun film.
-						</td>
-						<td>
-							<a class="btn btn-primary" href="{{ url_for('avertissement_sympa_pour_geeks') }}" role="button">Add</a>
-						</td>
-					</tr>
-				</tbody>
-			{% endfor %}
-
-		</table>
-	</div>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nom</th>
+                    <th>Prénom</th>
+                    <th>Objets</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in data %}
+                <tr data-person-id="{{ row.id_personne }}" class="person-row">
+                    <td>{{ row.id_personne }}</td>
+                    <td>{{ row.nom }}</td>
+                    <td>{{ row.prenom }}</td>
+                    {% if row.objets %}
+                    <td><button class="btn btn-info btn-sm show-objects-btn">Voir Objets</button></td>
+                    {% else %}
+                    <td></td> <!-- Ajoutez une colonne vide si la personne n'a pas d'objets associés -->
+                    {% endif %}
+                </tr>
+                <tr class="objects-row" id="objects-{{ row.id_personne }}" style="display: none;">
+                    <td colspan="5">
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>ID Objet</th>
+                                    <th>Nom Objet</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody class="objects-list">
+                                <!-- Les objets seront chargés ici via JavaScript -->
+                            </tbody>
+                        </table>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            {% else %}
+            <tbody>
+                <tr>
+                    <td colspan="5">Aucune personne trouvée.</td>
+                </tr>
+            </tbody>
+            {% endif %}
+        </table>
+    </div>
 </div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        document.querySelectorAll(".show-objects-btn").forEach(function(button) {
+            button.addEventListener("click", function() {
+                var personRow = button.closest(".person-row");
+                var personId = personRow.getAttribute("data-person-id");
+                var objectsRow = document.getElementById("objects-" + personId);
+
+                if (objectsRow.style.display === "none") {
+                    fetch(`/get_objects/${personId}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            var objectsList = objectsRow.querySelector(".objects-list");
+                            objectsList.innerHTML = "";
+                            data.forEach(function(object) {
+                                objectsList.innerHTML += `
+                                    <tr>
+                                        <td>${object.id_objets}</td>
+                                        <td>${object.nom_objets}</td>
+                                        <td><button class="btn btn-danger btn-sm delete-object-btn" data-person-id="${personId}" data-object-id="${object.id_objets}">Supprimer</button></td>
+                                    </tr>
+                                `;
+                            });
+
+                            objectsRow.style.display = "table-row";
+
+                            // Ajouter des écouteurs d'événements pour les boutons de suppression
+                            objectsList.querySelectorAll(".delete-object-btn").forEach(function(delButton) {
+                                delButton.addEventListener("click", function() {
+                                    var personId = delButton.getAttribute("data-person-id");
+                                    var objectId = delButton.getAttribute("data-object-id");
+
+                                    fetch(`/delete_object/${personId}/${objectId}`, {
+                                        method: 'POST'
+                                    })
+                                    .then(response => response.json())
+                                    .then(result => {
+                                        if (result.success) {
+                                            delButton.closest("tr").remove();
+                                        } else {
+                                            alert("Erreur lors de la suppression de l'objet.");
+                                        }
+                                    });
+                                });
+                            });
+                        });
+                } else {
+                    objectsRow.style.display = "none";
+                }
+            });
+        });
+    });
+</script>
 {% endblock %}

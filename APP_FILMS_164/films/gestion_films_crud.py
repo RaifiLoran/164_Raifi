@@ -28,6 +28,54 @@ Remarque :  Dans le champ "nom_film_update_wtf" du formulaire "films/films_updat
 """
 
 
+@app.route("/films_afficher/<string:order_by>/<int:id_film_sel>", methods=['GET', 'POST'])
+def films_afficher(order_by, id_film_sel):
+    if request.method == "GET":
+        try:
+            with DBconnection() as mc_afficher:
+                if order_by == "ASC" and id_film_sel == 0:
+                    strsql_genres_afficher = """SELECT id_personne, nom, prenom, mail_entreprise, service FROM t_personne ORDER BY id_personne ASC"""
+                    mc_afficher.execute(strsql_genres_afficher)
+                elif order_by == "ASC":
+                    # C'EST LA QUE VOUS ALLEZ DEVOIR PLACER VOTRE PROPRE LOGIQUE MySql
+                    # la commande MySql classique est "SELECT * FROM t_genre"
+                    # Pour "lever"(raise) une erreur s'il y a des erreurs sur les noms d'attributs dans la table
+                    # donc, je précise les champs à afficher
+                    # Constitution d'un dictionnaire pour associer l'id du genre sélectionné avec un nom de variable
+                    valeur_id_genre_selected_dictionnaire = {"value_id_genre_selected": id_film_sel}
+                    strsql_genres_afficher = """SELECT id_personne, nom, prenom, mail_entreprise, service FROM t_personne = %(value_id_genre_selected)s"""
+
+                    mc_afficher.execute(strsql_genres_afficher, valeur_id_genre_selected_dictionnaire)
+                else:
+                    strsql_genres_afficher = """SELECT id_personne, nom, prenom, mail_entreprise, service FROM t_personne ORDER BY id_personne DESC"""
+
+                    mc_afficher.execute(strsql_genres_afficher)
+
+                data_genres = mc_afficher.fetchall()
+
+                print("data_genres ", data_genres, " Type : ", type(data_genres))
+
+                # Différencier les messages si la table est vide.
+                if not data_genres and id_film_sel == 0:
+                    flash("""La table "t_personne" est vide. !!""", "warning")
+                elif not data_genres and id_film_sel > 0:
+                    # Si l'utilisateur change l'id_genre dans l'URL et que le genre n'existe pas,
+                    flash(f"Le genre demandé n'existe pas !!", "warning")
+                else:
+                    # Dans tous les autres cas, c'est que la table "t_genre" est vide.
+                    # OM 2020.04.09 La ligne ci-dessous permet de donner un sentiment rassurant aux utilisateurs.
+                    flash(f"Données objets ajoutées !!", "success")
+
+        except Exception as Exception_genres_afficher:
+            raise ExceptionGenresAfficher(f"fichier : {Path(__file__).name}  ;  "
+                                          f"{films_afficher.__name__} ; "
+                                          f"{Exception_genres_afficher}")
+
+    # Envoie la page "HTML" au serveur.
+    return render_template("films/films_afficher.html", data=data_genres)
+
+
+
 @app.route("/film_add", methods=['GET', 'POST'])
 def film_add_wtf():
     # Objet formulaire pour AJOUTER un film
@@ -40,7 +88,7 @@ def film_add_wtf():
                 valeurs_insertion_dictionnaire = {"value_nom_film": nom_film_add}
                 print("valeurs_insertion_dictionnaire ", valeurs_insertion_dictionnaire)
 
-                strsql_insert_film = """INSERT INTO t_film (id_film,nom_film) VALUES (NULL,%(value_nom_film)s) """
+                strsql_insert_film = """INSERT INTO t_personne (id_personne,nom) VALUES (NULL,%(value_nom_film)s) """
                 with DBconnection() as mconn_bd:
                     mconn_bd.execute(strsql_insert_film, valeurs_insertion_dictionnaire)
 
@@ -48,7 +96,7 @@ def film_add_wtf():
                 print(f"Données insérées !!")
 
                 # Pour afficher et constater l'insertion du nouveau film (id_film_sel=0 => afficher tous les films)
-                return redirect(url_for('films_genres_afficher', id_film_sel=0))
+                return redirect(url_for('films_afficher', order_by='ASC', id_film_sel=0))
 
         except Exception as Exception_genres_ajouter_wtf:
             raise ExceptionGenresAjouterWtf(f"fichier : {Path(__file__).name}  ;  "
@@ -101,12 +149,11 @@ def film_update_wtf():
                                           }
             print("valeur_update_dictionnaire ", valeur_update_dictionnaire)
 
-            str_sql_update_nom_film = """UPDATE t_film SET nom_film = %(value_nom_film)s,
-                                                            duree_film = %(value_duree_film)s,
-                                                            description_film = %(value_description_film)s,
-                                                            cover_link_film = %(value_cover_link_film)s,
-                                                            date_sortie_film = %(value_datesortie_film)s
-                                                            WHERE id_film = %(value_id_film)s"""
+            str_sql_update_nom_film = """UPDATE t_personne SET nom = %(value_nom_film)s,
+                                                            prenom = %(value_duree_film)s,
+                                                            service = %(value_description_film)s,
+                                                            mail_entreprise = %(value_cover_link_film)s                                                       
+                                                            WHERE id_personne = %(value_id_film)s"""
             with DBconnection() as mconn_bd:
                 mconn_bd.execute(str_sql_update_nom_film, valeur_update_dictionnaire)
 
@@ -118,23 +165,22 @@ def film_update_wtf():
             return redirect(url_for('films_genres_afficher', id_film_sel=id_film_update))
         elif request.method == "GET":
             # Opération sur la BD pour récupérer "id_film" et "intitule_genre" de la "t_genre"
-            str_sql_id_film = "SELECT * FROM t_film WHERE id_film = %(value_id_film)s"
+            str_sql_id_film = "SELECT * FROM t_personne WHERE id_personne = %(value_id_film)s"
             valeur_select_dictionnaire = {"value_id_film": id_film_update}
             with DBconnection() as mybd_conn:
                 mybd_conn.execute(str_sql_id_film, valeur_select_dictionnaire)
             # Une seule valeur est suffisante "fetchone()", vu qu'il n'y a qu'un seul champ "nom genre" pour l'UPDATE
             data_film = mybd_conn.fetchone()
             print("data_film ", data_film, " type ", type(data_film), " genre ",
-                  data_film["nom_film"])
+                  data_film["nom"])
 
             # Afficher la valeur sélectionnée dans le champ du formulaire "film_update_wtf.html"
-            form_update_film.nom_film_update_wtf.data = data_film["nom_film"]
-            form_update_film.duree_film_update_wtf.data = data_film["duree_film"]
+            form_update_film.nom_film_update_wtf.data = data_film["nom"]
+            form_update_film.duree_film_update_wtf.data = data_film["prenom"]
             # Debug simple pour contrôler la valeur dans la console "run" de PyCharm
-            print(f" duree film  ", data_film["duree_film"], "  type ", type(data_film["duree_film"]))
-            form_update_film.description_film_update_wtf.data = data_film["description_film"]
-            form_update_film.cover_link_film_update_wtf.data = data_film["cover_link_film"]
-            form_update_film.datesortie_film_update_wtf.data = data_film["date_sortie_film"]
+            print(f" duree film  ", data_film["prenom"], "  type ", type(data_film["prenom"]))
+            form_update_film.description_film_update_wtf.data = data_film["mail_entreprise"]
+            form_update_film.cover_link_film_update_wtf.data = data_film["service"]
 
     except Exception as Exception_film_update_wtf:
         raise ExceptionFilmUpdateWtf(f"fichier : {Path(__file__).name}  ;  "
@@ -178,7 +224,7 @@ def film_delete_wtf():
             data_film_delete = session['data_film_delete']
             print("data_film_delete ", data_film_delete)
 
-            flash(f"Effacer le film de façon définitive de la BD !!!", "danger")
+            flash(f"Effacer la personne de la base de donnée!!!", "danger")
             # L'utilisateur vient de cliquer sur le bouton de confirmation pour effacer...
             # On affiche le bouton "Effacer genre" qui va irrémédiablement EFFACER le genre
             btn_submit_del = True
@@ -188,8 +234,8 @@ def film_delete_wtf():
             valeur_delete_dictionnaire = {"value_id_film": id_film_delete}
             print("valeur_delete_dictionnaire ", valeur_delete_dictionnaire)
 
-            str_sql_delete_fk_film_genre = """DELETE FROM t_genre_film WHERE fk_film = %(value_id_film)s"""
-            str_sql_delete_film = """DELETE FROM t_film WHERE id_film = %(value_id_film)s"""
+            str_sql_delete_fk_film_genre = """DELETE FROM t_objets_personne WHERE id_objets_personne = %(value_id_film)s"""
+            str_sql_delete_film = """DELETE FROM t_personne WHERE id_personne = %(value_id_film)s"""
             # Manière brutale d'effacer d'abord la "fk_film", même si elle n'existe pas dans la "t_genre_film"
             # Ensuite on peut effacer le film vu qu'il n'est plus "lié" (INNODB) dans la "t_genre_film"
             with DBconnection() as mconn_bd:
@@ -206,7 +252,7 @@ def film_delete_wtf():
             print(id_film_delete, type(id_film_delete))
 
             # Requête qui affiche le film qui doit être efffacé.
-            str_sql_genres_films_delete = """SELECT * FROM t_film WHERE id_film = %(value_id_film)s"""
+            str_sql_genres_films_delete = """SELECT * FROM t_personne WHERE id_personne = %(value_id_film)s"""
 
             with DBconnection() as mydb_conn:
                 mydb_conn.execute(str_sql_genres_films_delete, valeur_select_dictionnaire)

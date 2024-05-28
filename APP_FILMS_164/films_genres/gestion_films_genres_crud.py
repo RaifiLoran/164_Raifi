@@ -28,47 +28,39 @@ from APP_FILMS_164.erreurs.exceptions import *
 
 @app.route("/films_genres_afficher/<int:id_film_sel>", methods=['GET', 'POST'])
 def films_genres_afficher(id_film_sel):
-    print(" films_genres_afficher id_film_sel ", id_film_sel)
+    print("films_genres_afficher id_film_sel ", id_film_sel)
     if request.method == "GET":
         try:
             with DBconnection() as mc_afficher:
-                strsql_genres_films_afficher_data = """SELECT id_film, nom_film, duree_film, description_film, cover_link_film, date_sortie_film,
-                                                            GROUP_CONCAT(nom_objets) as GenresFilms FROM t_genre_film
-                                                            RIGHT JOIN t_film ON t_film.id_film = t_genre_film.fk_film
-                                                            LEFT JOIN t_genre ON t_genre.id_genre = t_genre_film.fk_genre
-                                                            GROUP BY id_film"""
+                strsql_genres_films_afficher_data = """SELECT tp.id_personne, tp.nom, tp.prenom, tp.service,
+                                                       JSON_ARRAYAGG(
+                                                           JSON_OBJECT('id_objets', tb.id_objets, 'nom_objets', tb.nom_objets)
+                                                       ) AS objets
+                                                       FROM t_personne tp
+                                                       LEFT JOIN t_objets_personne top ON tp.id_personne = top.id_personne
+                                                       LEFT JOIN t_objets tb ON top.id_objets = tb.id_objets AND tb.is_assigned = 1
+                                                       GROUP BY tp.id_personne"""
                 if id_film_sel == 0:
-                    # le paramètre 0 permet d'afficher tous les films
-                    # Sinon le paramètre représente la valeur de l'id du film
                     mc_afficher.execute(strsql_genres_films_afficher_data)
                 else:
-                    # Constitution d'un dictionnaire pour associer l'id du film sélectionné avec un nom de variable
                     valeur_id_film_selected_dictionnaire = {"value_id_film_selected": id_film_sel}
-                    # En MySql l'instruction HAVING fonctionne comme un WHERE... mais doit être associée à un GROUP BY
-                    # L'opérateur += permet de concaténer une nouvelle valeur à la valeur de gauche préalablement définie.
-                    strsql_genres_films_afficher_data += """ HAVING id_film= %(value_id_film_selected)s"""
-
+                    strsql_genres_films_afficher_data += """ HAVING tp.id_personne= %(value_id_film_selected)s"""
                     mc_afficher.execute(strsql_genres_films_afficher_data, valeur_id_film_selected_dictionnaire)
 
-                # Récupère les données de la requête.
                 data_genres_films_afficher = mc_afficher.fetchall()
                 print("data_genres ", data_genres_films_afficher, " Type : ", type(data_genres_films_afficher))
 
-                # Différencier les messages.
                 if not data_genres_films_afficher and id_film_sel == 0:
-                    flash("""La table "t_film" est vide. !""", "warning")
+                    flash("""La table "t_personne" est vide. !""", "warning")
                 elif not data_genres_films_afficher and id_film_sel > 0:
-                    # Si l'utilisateur change l'id_film dans l'URL et qu'il ne correspond à aucun film
-                    flash(f"Le film {id_film_sel} demandé n'existe pas !!", "warning")
+                    flash(f"La personne {id_film_sel} demandée n'existe pas !!", "warning")
                 else:
-                    flash(f"Données films et genres affichés !!", "success")
+                    flash(f"Données personne et objets affichées !!", "success")
 
-        except Exception as Exception_films_genres_afficher:
-            raise ExceptionFilmsGenresAfficher(f"fichier : {Path(__file__).name}  ;  {films_genres_afficher.__name__} ;"
-                                               f"{Exception_films_genres_afficher}")
+        except Exception as e:
+            raise ExceptionFilmsGenresAfficher(f"fichier : {Path(__file__).name}  ;  {films_genres_afficher.__name__} ; {e}")
 
     print("films_genres_afficher  ", data_genres_films_afficher)
-    # Envoie la page "HTML" au serveur.
     return render_template("films_genres/films_genres_afficher.html", data=data_genres_films_afficher)
 
 
@@ -87,13 +79,51 @@ def films_genres_afficher(id_film_sel):
 
 """
 
+from flask import jsonify, request
+
+@app.route("/get_objects/<int:id_person>", methods=['GET'])
+def get_objects(id_person):
+    try:
+        with DBconnection() as mc_afficher:
+            strsql_objects_person = """SELECT top.id_objets, tb.nom_objets
+                                       FROM t_objets_personne top
+                                       INNER JOIN t_objets tb ON top.id_objets = tb.id_objets
+                                       WHERE top.id_personne = %(value_id_person)s"""
+            mc_afficher.execute(strsql_objects_person, {"value_id_person": id_person})
+            data_objects = mc_afficher.fetchall()
+            return jsonify(data_objects)
+    except Exception as e:
+        print(f"Error fetching objects for person {id_person}: {e}")
+        return jsonify([])
+
+@app.route("/delete_object/<int:id_person>/<int:id_object>", methods=['POST'])
+def delete_object(id_person, id_object):
+    try:
+        with DBconnection() as mconn_bd:
+            # Supprimer le lien entre la personne et l'objet dans la table intermédiaire
+            strsql_delete_object_person = """DELETE FROM t_objets_personne
+                                             WHERE id_personne = %(value_id_person)s AND id_objets = %(value_id_object)s"""
+            mconn_bd.execute(strsql_delete_object_person, {"value_id_person": id_person, "value_id_object": id_object})
+
+            # Mettre à jour la table t_objets pour définir is_assigned à 0
+            strsql_update_objet = """UPDATE t_objets
+                                     SET is_assigned = 0
+                                     WHERE id_objets = %(value_id_object)s"""
+            mconn_bd.execute(strsql_update_objet, {"value_id_object": id_object})
+
+            return jsonify({"success": True})
+    except Exception as e:
+        print(f"Error deleting object {id_object} for person {id_person}: {e}")
+        return jsonify({"success": False})
+
+
 
 @app.route("/edit_genre_film_selected", methods=['GET', 'POST'])
 def edit_genre_film_selected():
     if request.method == "GET":
         try:
             with DBconnection() as mc_afficher:
-                strsql_genres_afficher = """SELECT id_objets, nom_objets FROM t_objets ORDER BY id_genre ASC"""
+                strsql_genres_afficher = """SELECT id_objets, nom_objets FROM t_objets ORDER BY id_objets ASC"""
                 mc_afficher.execute(strsql_genres_afficher)
             data_genres_all = mc_afficher.fetchall()
             print("dans edit_genre_film_selected ---> data_genres_all", data_genres_all)
@@ -221,11 +251,12 @@ def update_genre_film_selected():
 
             # SQL pour insérer une nouvelle association entre
             # "fk_film"/"id_film" et "fk_genre"/"id_genre" dans la "t_genre_film"
-            strsql_insert_genre_film = """INSERT INTO t_genre_film (id_genre_film, fk_genre, fk_film)
+            strsql_insert_genre_film = """INSERT INTO t_objets_personne (id_objets_personne, fk_objets, fk_personne)
                                                     VALUES (NULL, %(value_fk_genre)s, %(value_fk_film)s)"""
 
+
             # SQL pour effacer une (des) association(s) existantes entre "id_film" et "id_genre" dans la "t_genre_film"
-            strsql_delete_genre_film = """DELETE FROM t_genre_film WHERE fk_genre = %(value_fk_genre)s AND fk_film = %(value_fk_film)s"""
+            strsql_delete_genre_film = """DELETE FROM t_objets_personne WHERE fk_objets = %(value_fk_genre)s AND fk_film = %(value_fk_film)s"""
 
             with DBconnection() as mconn_bd:
                 # Pour le film sélectionné, parcourir la liste des genres à INSÉRER dans la "t_genre_film".
@@ -276,20 +307,32 @@ def genres_films_afficher_data(valeur_id_film_selected_dict):
     print("valeur_id_film_selected_dict...", valeur_id_film_selected_dict)
     try:
 
-        strsql_film_selected = """SELECT id_film, nom_film, duree_film, description_film, cover_link_film, date_sortie_film, GROUP_CONCAT(id_genre) as GenresFilms FROM t_genre_film
-                                        INNER JOIN t_film ON t_film.id_film = t_genre_film.fk_film
-                                        INNER JOIN t_genre ON t_genre.id_genre = t_genre_film.fk_genre
-                                        WHERE id_film = %(value_id_film_selected)s"""
+        strsql_film_selected = """SELECT tp.id_personne, tp.nom, tp.prenom, tp.service, tp.mail_entreprise, 
+                                                GROUP_CONCAT(tb.nom_objets) as GenresFilms 
+                                          FROM t_objets_personne top
+                                          RIGHT JOIN t_personne tp ON tp.id_personne = top.id_personne
+                                          LEFT JOIN t_objets tb ON tb.id_objets = top.id_objets
+                                          WHERE tp.id_personne = %(value_id_film_selected)s
+                                          GROUP BY tp.id_personne"""
 
-        strsql_genres_films_non_attribues = """SELECT id_objets, nom_objets FROM t_objets WHERE id_objets not in(SELECT id_objets as idobjetspersonne FROM t_objets
-                                                    INNER JOIN t_personne ON t_personne.id_personne = t_personne.fk_emprunt
-                                                    INNER JOIN t_objets ON t_objets.id_objets = t_objets.fk_id_retour
-                                                    WHERE id_personne = %(value_id_film_selected)s)"""
+        # Nouvelle requête pour récupérer les genres non attribués au film sélectionné
+        strsql_genres_films_non_attribues = """SELECT tb.id_objets, tb.nom_objets 
+                                                       FROM t_objets tb
+                                                       WHERE tb.id_objets NOT IN (
+                                                           SELECT tb.id_objets 
+                                                           FROM t_objets_personne top
+                                                           INNER JOIN t_personne tp ON tp.id_personne = top.id_personne
+                                                           LEFT JOIN t_objets tb ON tb.id_objets = top.id_objets
+                                                           WHERE tp.id_personne = %(value_id_film_selected)s
+                                                       )"""
 
-        strsql_genres_films_attribues = """SELECT id_personne, id_personne, nom FROM t_personne
-                                            INNER JOIN t_personne ON t_personne.id_personne = t_personne.fk_emprunt
-                                            INNER JOIN t_objets ON t_objets.id_objets = t_objets.fk_id_objets
-                                            WHERE id_personne = %(value_id_film_selected)s"""
+        # Nouvelle requête pour récupérer les genres attribués au film sélectionné
+        strsql_genres_films_attribues = """SELECT tp.id_personne, tb.id_objets, tb.nom_objets 
+                                                   FROM t_objets_personne top
+                                                   INNER JOIN t_personne tp ON tp.id_personne = top.id_personne
+                                                   LEFT JOIN t_objets tb ON tb.id_objets = top.id_objets
+                                                   WHERE tp.id_personne = %(value_id_film_selected)s"""
+
 
         # Du fait de l'utilisation des "context managers" on accède au curseur grâce au "with".
         with DBconnection() as mc_afficher:
