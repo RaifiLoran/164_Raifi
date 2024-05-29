@@ -61,10 +61,6 @@ def films_afficher(order_by, id_film_sel):
                 elif not data_genres and id_film_sel > 0:
                     # Si l'utilisateur change l'id_genre dans l'URL et que le genre n'existe pas,
                     flash(f"Le genre demandé n'existe pas !!", "warning")
-                else:
-                    # Dans tous les autres cas, c'est que la table "t_genre" est vide.
-                    # OM 2020.04.09 La ligne ci-dessous permet de donner un sentiment rassurant aux utilisateurs.
-                    flash(f"Données objets ajoutées !!", "success")
 
         except Exception as Exception_genres_afficher:
             raise ExceptionGenresAfficher(f"fichier : {Path(__file__).name}  ;  "
@@ -78,17 +74,30 @@ def films_afficher(order_by, id_film_sel):
 
 @app.route("/film_add", methods=['GET', 'POST'])
 def film_add_wtf():
-    # Objet formulaire pour AJOUTER un film
     form_add_film = FormWTFAddFilm()
+
+    if form_add_film.submit_btn_annuler.data:
+        return redirect(url_for("films_afficher", order_by="ASC", id_film_sel=0))
+
+
     if request.method == "POST":
         try:
             if form_add_film.validate_on_submit():
                 nom_film_add = form_add_film.nom_film_add_wtf.data
+                prenom_film_add = form_add_film.prenom_film_add_wtf.data
+                mail_film_add = form_add_film.mail_film_add_wtf.data
+                service_film_add = form_add_film.service_film_add_wtf.data
 
-                valeurs_insertion_dictionnaire = {"value_nom_film": nom_film_add}
+                valeurs_insertion_dictionnaire = {
+                    "value_nom_film": nom_film_add,
+                    "value_prenom_film": prenom_film_add,
+                    "value_mail_film": mail_film_add,
+                    "value_service_film": service_film_add
+                }
                 print("valeurs_insertion_dictionnaire ", valeurs_insertion_dictionnaire)
 
-                strsql_insert_film = """INSERT INTO t_personne (id_personne,nom) VALUES (NULL,%(value_nom_film)s) """
+                strsql_insert_film = """INSERT INTO t_personne (nom, prenom, mail_entreprise, service) 
+                                        VALUES (%(value_nom_film)s, %(value_prenom_film)s, %(value_mail_film)s, %(value_service_film)s)"""
                 with DBconnection() as mconn_bd:
                     mconn_bd.execute(strsql_insert_film, valeurs_insertion_dictionnaire)
 
@@ -130,6 +139,11 @@ def film_update_wtf():
     # Objet formulaire pour l'UPDATE
     form_update_film = FormWTFUpdateFilm()
     try:
+
+        if form_update_film.submit_btn_annuler.data:
+            return redirect(url_for("films_afficher", order_by="ASC", id_film_sel=0))
+
+
         # 2023.05.14 OM S'il y a des listes déroulantes dans le formulaire
         # La validation pose quelques problèmes
         if request.method == "POST" and form_update_film.submit.data:
@@ -216,7 +230,7 @@ def film_delete_wtf():
     try:
         # Si on clique sur "ANNULER", afficher tous les films.
         if form_delete_film.submit_btn_annuler.data:
-            return redirect(url_for("films_genres_afficher", id_film_sel=0))
+            return redirect(url_for("films_afficher", order_by="ASC", id_film_sel=0))
 
         if form_delete_film.submit_btn_conf_del_film.data:
             # Récupère les données afin d'afficher à nouveau
@@ -276,3 +290,6 @@ def film_delete_wtf():
                            btn_submit_del=btn_submit_del,
                            data_film_del=data_film_delete
                            )
+
+
+

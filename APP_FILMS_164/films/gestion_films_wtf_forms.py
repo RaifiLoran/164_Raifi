@@ -25,7 +25,32 @@ class FormWTFAddFilm(FlaskForm):
                                                                               "apostrophe, de double trait union")
                                                                ])
 
-    submit = SubmitField("Enregistrer la donnée")
+    prenom_film_add_wtf = StringField("Prénom de la personne ", validators=[Length(min=2, max=2000, message="min 2 max 20"),
+                                                                      Regexp(nom_film_regexp,
+                                                                             message="Pas de chiffres, de caractères "
+                                                                                     "spéciaux, "
+                                                                                     "d'espace à double, de double "
+                                                                                     "apostrophe, de double trait union")
+                                                                      ])
+    mail_film_add_wtf = StringField("E-mail de la personne ",
+                                      validators=[Length(min=2, max=2000, message="min 2 max 20"),
+                                                  Regexp(nom_film_regexp,
+                                                         message="Pas de chiffres, de caractères "
+                                                                 "spéciaux, "
+                                                                 "d'espace à double, de double "
+                                                                 "apostrophe, de double trait union")
+                                                  ])
+    service_film_add_wtf = StringField("Service de la personne ",
+                                    validators=[Length(min=2, max=2000, message="min 2 max 20"),
+                                                Regexp(nom_film_regexp,
+                                                       message="Pas de chiffres, de caractères "
+                                                               "spéciaux, "
+                                                               "d'espace à double, de double "
+                                                               "apostrophe, de double trait union")
+                                                ])
+
+    submit = SubmitField("Ajouter la personne")
+    submit_btn_annuler = SubmitField("Annuler")
 
 
 class FormWTFUpdateFilm(FlaskForm):
@@ -33,15 +58,39 @@ class FormWTFUpdateFilm(FlaskForm):
         Dans le formulaire "film_update_wtf.html" on impose que le champ soit rempli.
         Définition d'un "bouton" submit avec un libellé personnalisé.
     """
-
-    nom_film_update_wtf = StringField("Nom", widget=TextArea())
-    duree_film_update_wtf = StringField("Prenom", widget=TextArea())
-    description_film_update_wtf = StringField("E-mail", widget=TextArea())
-    cover_link_film_update_wtf = StringField("Secteur ", widget=TextArea())
+    nom_film_regexp = ""
+    nom_film_update_wtf = StringField("Nom de la personne ", validators=[Length(min=2, max=2000, message="min 2 max 20"),
+                                                               Regexp(nom_film_regexp,
+                                                                      message="Pas de chiffres, de caractères "
+                                                                              "spéciaux, "
+                                                                              "d'espace à double, de double "
+                                                                              "apostrophe, de double trait union")
+                                                               ])
+    duree_film_update_wtf = StringField("Prénom de la personne ", validators=[Length(min=2, max=2000, message="min 2 max 20"),
+                                                               Regexp(nom_film_regexp,
+                                                                      message="Pas de chiffres, de caractères "
+                                                                              "spéciaux, "
+                                                                              "d'espace à double, de double "
+                                                                              "apostrophe, de double trait union")
+                                                               ])
+    description_film_update_wtf = StringField("E-mail de la personne ", validators=[Length(min=2, max=2000, message="min 2 max 20"),
+                                                               Regexp(nom_film_regexp,
+                                                                      message="Pas de chiffres, de caractères "
+                                                                              "spéciaux, "
+                                                                              "d'espace à double, de double "
+                                                                              "apostrophe, de double trait union")
+                                                               ])
+    cover_link_film_update_wtf = StringField("Service de la personne ", validators=[Length(min=2, max=2000, message="min 2 max 20"),
+                                                               Regexp(nom_film_regexp,
+                                                                      message="Pas de chiffres, de caractères "
+                                                                              "spéciaux, "
+                                                                              "d'espace à double, de double "
+                                                                              "apostrophe, de double trait union")
+                                                               ])
     datesortie_film_update_wtf = DateField("", validators=[InputRequired("Date obligatoire"),
                                                                                  DataRequired("Date non valide")])
-    submit = SubmitField("Update film")
-
+    submit = SubmitField("Mettre à jour la personne")
+    submit_btn_annuler = SubmitField("Annuler")
 
 class FormWTFDeleteFilm(FlaskForm):
     """

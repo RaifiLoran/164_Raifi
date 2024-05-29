@@ -1,12 +1,18 @@
 {% extends "base.html" %}
 {% block title %} Ajouter un FILM (WTF) {% endblock %}
 {% block body %}
-<div class="container">
+
+<div class="container-fluid bg-primary  bg-header">
+	<div class="row py-5">
+		<div class="col-12 pt-lg-5 mt-lg-5 text-center">
+			<h1 class="display-4 text-white animated zoomIn">Ajout d'une personne</h1>
+		</div>
+	</div>
+</div>
+{% include 'flash_messages.html' %}
+<div class="container button_header">
 	<div class="row">
 		<div class="col-md-12">
-			<p>
-				Ajouter une nouvelle personne
-			</p>
 			<form action="" method="POST" novalidate>
 				<!-- Protection contre les attaques Cross-Site Request Forgery (CSRF) -->
 				{{ form_add_film.hidden_tag() }}
@@ -18,9 +24,31 @@
 							<span style="color: red;">[{{ error }}]</span>
 						{% endfor %}
 					</p>
-					Voilà c'est juste pour vous montrer l'ossature du projet je n'ai pas tout fait...
+					<p>
+						{{ form_add_film.prenom_film_add_wtf.label }}<br>
+						{{ form_add_film.prenom_film_add_wtf(size=32) }}<br>
+						{% for error in form_add_film.prenom_film_add_wtf.errors %}
+							<span style="color: red;">[{{ error }}]</span>
+						{% endfor %}
+					</p>
+					<p>
+						{{ form_add_film.mail_film_add_wtf.label }}<br>
+						{{ form_add_film.mail_film_add_wtf(size=32) }}<br>
+						{% for error in form_add_film.mail_film_add_wtf.errors %}
+							<span style="color: red;">[{{ error }}]</span>
+						{% endfor %}
+					</p>
+					<p>
+						{{ form_add_film.service_film_add_wtf.label }}<br>
+						{{ form_add_film.service_film_add_wtf(size=32) }}<br>
+						{% for error in form_add_film.service_film_add_wtf.errors %}
+							<span style="color: red;">[{{ error }}]</span>
+						{% endfor %}
+					</p>
 				</div>
 				{{ form_add_film.submit(class="btn btn-primary") }}
+
+				{{ form_add_film.submit_btn_annuler(class="btn btn-info") }}
 			</form>
 		</div>
 	</div>

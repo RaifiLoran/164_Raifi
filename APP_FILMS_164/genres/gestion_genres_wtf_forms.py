@@ -44,7 +44,7 @@ class FormWTFUpdateGenre(FlaskForm):
     date_genre_wtf_essai = StringField("etat objets", validators=[InputRequired("état obligatoire"),
                                                                DataRequired("état non valide")])
     submit = SubmitField("Update objets")
-
+    submit_btn_annuler = SubmitField("Annuler")
 
 class FormWTFDeleteGenre(FlaskForm):
     """
@@ -77,4 +77,6 @@ class FormWTFAttribuerObjet(FlaskForm):
                                                                           ])
     nom_personne_update_wtf = SelectField("Personne ", coerce=int)
 
-    submit = SubmitField("Attribuer objet")
+    submit_btn_conf_del = SubmitField("Confirmer")
+    submit_btn_del = SubmitField("Réattribuer")
+    submit_btn_annuler = SubmitField("Annuler")

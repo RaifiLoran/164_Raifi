@@ -61,10 +61,7 @@ def genres_afficher(order_by, id_genre_sel):
                 elif not data_genres and id_genre_sel > 0:
                     # Si l'utilisateur change l'id_genre dans l'URL et que le genre n'existe pas,
                     flash(f"Le genre demandé n'existe pas !!", "warning")
-                else:
-                    # Dans tous les autres cas, c'est que la table "t_genre" est vide.
-                    # OM 2020.04.09 La ligne ci-dessous permet de donner un sentiment rassurant aux utilisateurs.
-                    flash(f"Données objets ajoutées !!", "success")
+
 
         except Exception as Exception_genres_afficher:
             raise ExceptionGenresAfficher(f"fichier : {Path(__file__).name}  ;  "
@@ -154,6 +151,11 @@ def genre_update_wtf():
     try:
         # 2023.05.14 OM S'il y a des listes déroulantes dans le formulaire
         # La validation pose quelques problèmes
+
+        if form_update.submit_btn_annuler.data:
+            return redirect(url_for("genres_afficher", order_by="ASC", id_genre_sel=0))
+
+
         if request.method == "POST" and form_update.submit.data:
             # Récupèrer la valeur du champ depuis "genre_update_wtf.html" après avoir cliqué sur "SUBMIT".
             # Puis la convertir en lettres minuscules.
@@ -239,7 +241,7 @@ def genre_delete_wtf():
                 data_films_attribue_genre_delete = session['data_films_attribue_genre_delete']
                 print("data_films_attribue_genre_delete ", data_films_attribue_genre_delete)
 
-                flash(f"Effacer le genre de façon définitive de la BD !!!", "danger")
+                flash(f"Effacer l'objet de façon définitive de la BD !!!", "danger")
                 # L'utilisateur vient de cliquer sur le bouton de confirmation pour effacer...
                 # On affiche le bouton "Effacer genre" qui va irrémédiablement EFFACER le genre
                 btn_submit_del = True
@@ -311,23 +313,28 @@ def genre_delete_wtf():
 
 """page dédié à l'attribution d'un objet à une personne"""
 
-
 @app.route("/objet_personne", methods=['GET', 'POST'])
 def objet_personne_wtf():
     id_genre_update = request.values.get('id_genre_btn_edit_html', None)
     form_assign = FormWTFAttribuerObjet()
+    confirm = request.form.get('confirm', None)
+    data_films_associes = None
 
     try:
+        if form_assign.submit_btn_annuler.data:
+            return redirect(url_for("genres_afficher", order_by="ASC", id_genre_sel=0))
+
         if request.method == "POST":
-            name_genre_update = form_assign.nom_genre_update_wtf.data.lower()
             id_personne = form_assign.nom_personne_update_wtf.data
+
+            if not id_personne:
+                flash("Veuillez sélectionner une personne pour attribuer l'objet.", "warning")
+                return render_template("genres/objet_personne_wtf.html", form_assign=form_assign, confirm=confirm, id_genre_update=id_genre_update, data_films_associes=data_films_associes)
 
             valeur_update_dictionnaire = {
                 "value_id_genre": id_genre_update,
-                "value_name_genre": name_genre_update,
                 "value_id_personne": id_personne
             }
-            print("valeur_update_dictionnaire ", valeur_update_dictionnaire)
 
             # Vérifiez si l'objet est déjà attribué
             str_sql_check_objets_assigned = """
@@ -338,34 +345,33 @@ def objet_personne_wtf():
                 data_is_assigned = mconn_bd.fetchone()
 
             if data_is_assigned and data_is_assigned['is_assigned'] == 1:
-                if 'confirm' in request.form and request.form['confirm'] == 'yes':
-                    # Supprimer l'ancienne attribution
-                    str_sql_delete_objets_personne = """
-                        DELETE FROM t_objets_personne WHERE id_objets = %(value_id_genre)s
-                    """
-                    with DBconnection() as mconn_bd:
-                        mconn_bd.execute(str_sql_delete_objets_personne, valeur_update_dictionnaire)
-
-                    # Réattribuer l'objet
-                    str_sql_insert_objets_personne = """
-                        INSERT INTO t_objets_personne (id_objets, id_personne)
-                        VALUES (%(value_id_genre)s, %(value_id_personne)s)
-                    """
-                    str_sql_update_objets = """
-                        UPDATE t_objets
-                        SET is_assigned = 1
+                if form_assign.submit_btn_del.data:
+                    # Mise à jour de l'attribution
+                    str_sql_update_objets_personne = """
+                        UPDATE t_objets_personne 
+                        SET id_personne = %(value_id_personne)s
                         WHERE id_objets = %(value_id_genre)s
                     """
                     with DBconnection() as mconn_bd:
-                        mconn_bd.execute(str_sql_insert_objets_personne, valeur_update_dictionnaire)
-                        mconn_bd.execute(str_sql_update_objets, valeur_update_dictionnaire)
+                        mconn_bd.execute(str_sql_update_objets_personne, valeur_update_dictionnaire)
 
-                    flash(f"Objet attribué à la personne avec succès !!", "success")
+                    flash("Objet réattribué à la nouvelle personne avec succès !!", "success")
                     return redirect(url_for('genres_afficher', order_by="ASC", id_genre_sel=id_genre_update))
                 else:
                     # Affichez un message d'alerte demandant confirmation
-                    flash(f"Cet objet est déjà attribué à quelqu'un. Voulez-vous supprimer l'attribution et l'attribuer à quelqu'un d'autre ?", "warning")
-                    return render_template("genres/objet_personne_wtf.html", form_assign=form_assign, confirm=True, id_genre_update=id_genre_update, id_personne=id_personne)
+                    str_sql_genres_films_delete = """
+                        SELECT top.id_objets_personne, tp.nom, tb.id_objets, tb.nom_objets 
+                        FROM t_objets_personne top 
+                        INNER JOIN t_personne tp ON top.id_personne = tp.id_personne
+                        INNER JOIN t_objets tb ON top.id_objets = tb.id_objets
+                        WHERE tb.id_objets = %(value_id_genre)s
+                    """
+                    with DBconnection() as mydb_conn:
+                        mydb_conn.execute(str_sql_genres_films_delete, valeur_update_dictionnaire)
+                        data_films_associes = mydb_conn.fetchall()
+
+                    flash("Cet objet est déjà attribué à quelqu'un. Voulez-vous réattribuer cet objet à une autre personne ?", "warning")
+                    return render_template("genres/objet_personne_wtf.html", form_assign=form_assign, confirm=True, id_genre_update=id_genre_update, id_personne=id_personne, data_films_associes=data_films_associes)
 
             # Si l'objet n'est pas déjà attribué, procédez à l'attribution
             str_sql_insert_objets_personne = """
@@ -381,7 +387,7 @@ def objet_personne_wtf():
                 mconn_bd.execute(str_sql_insert_objets_personne, valeur_update_dictionnaire)
                 mconn_bd.execute(str_sql_update_objets, valeur_update_dictionnaire)
 
-            flash(f"Objet attribué à la personne avec succès !!", "success")
+            flash("Objet attribué à la personne avec succès !!", "success")
             return redirect(url_for('genres_afficher', order_by="ASC", id_genre_sel=id_genre_update))
 
         elif request.method == "GET":
@@ -398,8 +404,18 @@ def objet_personne_wtf():
                 data_personnes = mybd_conn.fetchall()
                 form_assign.nom_personne_update_wtf.choices = [(row['id_personne'], row['nom']) for row in data_personnes]
 
+            str_sql_genres_films_delete = """
+                SELECT top.id_objets_personne, tp.nom, tb.id_objets, tb.nom_objets 
+                FROM t_objets_personne top 
+                INNER JOIN t_personne tp ON top.id_personne = tp.id_personne
+                INNER JOIN t_objets tb ON top.id_objets = tb.id_objets
+                WHERE tb.id_objets = %(value_id_genre)s
+            """
+            with DBconnection() as mydb_conn:
+                mydb_conn.execute(str_sql_genres_films_delete, valeur_select_dictionnaire)
+                data_films_associes = mydb_conn.fetchall()
+
     except Exception as e:
         raise Exception(f"Erreur lors de la mise à jour : {str(e)}")
 
-    return render_template("genres/objet_personne_wtf.html", form_assign=form_assign, confirm=False, id_genre_update=id_genre_update, id_personne=None)
-
+    return render_template("genres/objet_personne_wtf.html", form_assign=form_assign, confirm=False, id_genre_update=id_genre_update, id_personne=None, data_films_associes=data_films_associes)

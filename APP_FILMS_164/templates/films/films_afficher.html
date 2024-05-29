@@ -1,9 +1,19 @@
 {% extends "base.html" %}
 {% block title %} Afficher FILMS {% endblock %}
 {% block body %}
+
+<div class="container-fluid bg-primary  bg-header">
+	<div class="row py-5">
+		<div class="col-12 pt-lg-5 mt-lg-5 text-center">
+			<h1 class="display-4 text-white animated zoomIn">Personnes</h1>
+		</div>
+	</div>
+</div>
+{% include 'flash_messages.html' %}
+
 <div class="container">
 	<div class="col-md-12">
-		<div style="margin-top: 50px; margin-bottom: 50px">
+		<div class="button_header">
 			<a class="btn btn-primary" href="{{ url_for('film_add_wtf') }}" role="button">Nouvelle personne</a>
 		</div>
 		<table class="table table-responsive-sm">
@@ -23,6 +33,12 @@
 						  mail
 						<th class="" >
 						  service
+						</th>
+						<th class="" >
+						  Action 1
+						</th>
+						<th class="" >
+						  Action 2
 						</th>
 					</tr>
 				</thead>
@@ -46,10 +62,10 @@
 						{{ row.service }}
 					  </th>
 					  <th class="align-middle">
-						<a class="btn btn-warning" href="{{ url_for('film_update_wtf', id_film_btn_edit_html=row.id_personne) }}" role="button">Edit</a>
+						<a class="btn btn-warning" href="{{ url_for('film_update_wtf', id_film_btn_edit_html=row.id_personne) }}" role="button">Modifier</a>
 					  </th>
 					  <th class="align-middle">
-						<a class="btn btn-danger" href="{{ url_for('film_delete_wtf', id_film_btn_delete_html=row.id_personne ) }}" role="button">Delete</a>
+						<a class="btn btn-danger" href="{{ url_for('film_delete_wtf', id_film_btn_delete_html=row.id_personne ) }}" role="button">Supprimer</a>
 					  </th>
 				</tr>
 			</tbody>
@@ -57,10 +73,10 @@
 				<tbody>
 					<tr>
 						<td>
-							Aucun film.
+							Aucune personne.
 						</td>
 						<td>
-							<a class="btn btn-primary" href="{{ url_for('avertissement_sympa_pour_geeks') }}" role="button">Add</a>
+							<a class="btn btn-primary" href="{{ url_for('film_add_wtf') }}" role="button">Ajouter une première personne</a>
 						</td>
 					</tr>
 				</tbody>

@@ -1,28 +1,57 @@
 {% extends "base.html" %}
 {% block title %} Assigner Objet {% endblock %}
 {% block body %}
-<div class="container">
-    <form method="POST">
-        {{ form_assign.hidden_tag() }}
-        <div class="form-group">
-            {{ form_assign.nom_genre_update_wtf.label }}
-            {{ form_assign.nom_genre_update_wtf(class="form-control", readonly=True) }}
+
+<div class="container-fluid bg-primary bg-header">
+    <div class="row py-5">
+        <div class="col-12 pt-lg-5 mt-lg-5 text-center">
+            <h1 class="display-4 text-white animated zoomIn">Attribution d'un objet</h1>
         </div>
-        <div class="form-group">
-            {{ form_assign.nom_personne_update_wtf.label }}
-            {{ form_assign.nom_personne_update_wtf(class="form-control") }}
+    </div>
+</div>
+{% include 'flash_messages.html' %}
+<div class="container button_header">
+    <div class="row">
+        <div class="col-md-12">
+            <table class="table table-bordered table-sm">
+                {% for row in data_films_associes %}
+                    {% if data_films_associes %}
+                        <h3 style="color: red">Ce/Cet(te) {{ row.nom_objets }} est déjà associé à {{ row.nom }}</h3>
+                    {% endif %}
+                {% endfor %}
+            </table>
+            <form action="" method="POST" novalidate>
+                {{ form_assign.hidden_tag() }}
+
+
+                {% if not data_films_associes %}
+                <div class="form-group">
+                    <p>
+                        {{ form_assign.nom_genre_update_wtf.label }}<br>
+                        {{ form_assign.nom_genre_update_wtf(size=32, readonly=true) }}<br>
+                        {% for error in form_assign.nom_genre_update_wtf.errors %}
+                            <span style="color: red;">[{{ error }}]</span>
+                        {% endfor %}
+                    </p>
+                </div>
+
+                <div class="form-group">
+                    <p>
+                        {{ form_assign.nom_personne_update_wtf.label }}<br>
+                        {{ form_assign.nom_personne_update_wtf() }}<br>
+                        {% for error in form_assign.nom_personne_update_wtf.errors %}
+                            <span style="color: red;">[{{ error }}]</span>
+                        {% endfor %}
+                    </p>
+                </div>
+
+
+                    {{ form_assign.submit_btn_conf_del(class="btn btn-info") }}
+                {% endif %}
+
+                {{ form_assign.submit_btn_annuler(class="btn btn-primary") }}
+            </form>
         </div>
-        <input type="hidden" name="id_genre_update" value="{{ id_genre_update }}">
-        <input type="hidden" name="id_personne" value="{{ id_personne }}">
-        {% if confirm %}
-            <div class="alert alert-warning" role="alert">
-                Cet objet est déjà attribué à quelqu'un. Voulez-vous supprimer l'attribution et l'attribuer à quelqu'un d'autre ?
-                <button type="submit" name="confirm" value="yes" class="btn btn-danger">Oui</button>
-                <a href="{{ url_for('genres_afficher', order_by='ASC', id_genre_sel=0) }}" class="btn btn-secondary">Non</a>
-            </div>
-        {% else %}
-            {{ form_assign.submit(class="btn btn-primary") }}
-        {% endif %}
-    </form>
+    </div>
 </div>
 {% endblock %}

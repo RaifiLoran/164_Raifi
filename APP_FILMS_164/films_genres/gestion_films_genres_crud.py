@@ -54,8 +54,6 @@ def films_genres_afficher(id_film_sel):
                     flash("""La table "t_personne" est vide. !""", "warning")
                 elif not data_genres_films_afficher and id_film_sel > 0:
                     flash(f"La personne {id_film_sel} demandée n'existe pas !!", "warning")
-                else:
-                    flash(f"Données personne et objets affichées !!", "success")
 
         except Exception as e:
             raise ExceptionFilmsGenresAfficher(f"fichier : {Path(__file__).name}  ;  {films_genres_afficher.__name__} ; {e}")

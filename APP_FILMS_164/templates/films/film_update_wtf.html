@@ -1,12 +1,18 @@
 {% extends "base.html" %}
 {% block title %} Editer un FILM (WTF) {% endblock %}
 {% block body %}
-<div class="container">
+
+<div class="container-fluid bg-primary  bg-header">
+	<div class="row py-5">
+		<div class="col-12 pt-lg-5 mt-lg-5 text-center">
+			<h1 class="display-4 text-white animated zoomIn">Modification d'une personne</h1>
+		</div>
+	</div>
+</div>
+{% include 'flash_messages.html' %}
+<div class="container button_header">
 	<div class="row">
 		<div class="col-md-12">
-			<p>
-				Editer des données sur une personne
-			</p>
 			<form action="" method="POST" novalidate>
 				<!-- Protection contre les attaques Cross-Site Request Forgery (CSRF) -->
 				{{ form_update_film.hidden_tag() }}
@@ -41,6 +47,7 @@
 					</p>
 				</div>
 				{{ form_update_film.submit(class="btn btn-primary") }}
+				{{ form_update_film.submit_btn_annuler(class="btn btn-info") }}
 			</form>
 		</div>
 	</div>

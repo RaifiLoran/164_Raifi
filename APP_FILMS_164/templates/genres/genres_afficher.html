@@ -1,10 +1,22 @@
 {% extends "base.html" %}
 {% block title %} objets {% endblock %}
 {% block body %}
+
+
+<div class="container-fluid bg-primary  bg-header">
+	<div class="row py-5">
+		<div class="col-12 pt-lg-5 mt-lg-5 text-center">
+			<h1 class="display-4 text-white animated zoomIn">Objets</h1>
+		</div>
+	</div>
+</div>
+
+{% include 'flash_messages.html' %}
+
 <div class="container">
 	<div class="row">
 		<div class="col-md-12">
-			<div style="margin-top: 50px; margin-bottom: 50px">
+			<div class="button_header">
 				<a class="btn btn-primary" href="{{ url_for('genres_ajouter_wtf') }}" role="button">Nouvel objet</a>
 			</div>
 			<p>
