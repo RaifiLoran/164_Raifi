@@ -23,6 +23,7 @@ class FormWTFAjouterGenres(FlaskForm):
                                                                                   "d'espace à double, de double "
                                                                                   "apostrophe, de double trait union")
                                                                    ])
+
     submit = SubmitField("Ajouter objet")
 
 
@@ -41,6 +42,7 @@ class FormWTFUpdateGenre(FlaskForm):
                                                                                          "apostrophe, de double trait "
                                                                                          "union")
                                                                           ])
+
     date_genre_wtf_essai = StringField("etat objets", validators=[InputRequired("état obligatoire"),
                                                                DataRequired("état non valide")])
     submit = SubmitField("Update objets")

@@ -29,6 +29,7 @@ class MonPremierWTForm(FlaskForm):
                                                                                   "de double trait union")
                                                                    ])
 
+
     case_cocher_npc = BooleanField('Ne pas cliquer')
 
     submit = SubmitField('Ok !')
