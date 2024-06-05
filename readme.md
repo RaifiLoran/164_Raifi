@@ -1,8 +1,8 @@
 # Module 164 2024.05.06
 
-Voici les étapes à entreprendre pour mener à bien le module 164.
+**Voici les étapes à entreprendre pour mener à bien le module 164.**
 
-Étape 1 : Télécharger Laragon
+**Étape 1 : Télécharger Laragon**
 Rendez-vous sur le site officiel de Laragon : laragon.org.
 Cliquez sur le lien de téléchargement pour obtenir la dernière version de Laragon.
 
@@ -34,7 +34,7 @@ Vous pouvez accéder à l'interface de Laragon via l'icône dans la barre des t�
 
 
 
-voici les étapes à entreprendre pour installer pycharm;
+**voici les étapes à entreprendre pour installer pycharm;**
 
 Étape 1 : Télécharger PyCharm
 Rendez-vous sur le site officiel de JetBrains : jetbrains.com/pycharm.
@@ -85,7 +85,7 @@ Allez dans File > Settings pour configurer les paramètres spécifiques à votre
 En suivant ces étapes, vous devriez être en mesure d'installer et de configurer PyCharm sur votre machine pour un environnement de développement Python complet et efficace.
 
 
-Après les étapes précedente accomplie, un Tuto pour mener à bien le projets va suivre :
+**Après les étapes précedente accomplie, un Tuto pour mener à bien le projets va suivre :**
 
 1. ouvrire laragon (base de donnée)
    
