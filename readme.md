@@ -6,6 +6,9 @@
 Rendez-vous sur le site officiel de Laragon : laragon.org.
 Cliquez sur le lien de téléchargement pour obtenir la dernière version de Laragon.
 
+voici un lien avec une procédure officiel : https://laragon.org/docs/install.html
+
+
 Étape 2 : Lancer l'Assistant d'Installation
 Une fois le fichier téléchargé, exécutez-le pour lancer l'assistant d'installation.
 Cliquez sur "Next" pour commencer l'installation.
@@ -39,6 +42,8 @@ Vous pouvez accéder à l'interface de Laragon via l'icône dans la barre des t�
 Étape 1 : Télécharger PyCharm
 Rendez-vous sur le site officiel de JetBrains : jetbrains.com/pycharm.
 Choisissez la version de PyCharm que vous souhaitez installer (Community ou Professional) et cliquez sur le bouton de téléchargement correspondant.
+
+voici le lien d'une procédure officiel : https://www.jetbrains.com/help/pycharm/installation-guide.html#requirements
 
 Étape 2 : Lancer l'Assistant d'Installation
 Une fois le fichier téléchargé, exécutez-le pour lancer l'assistant d'installation.
@@ -90,10 +95,12 @@ En suivant ces étapes, vous devriez être en mesure d'installer et de configure
 1. ouvrire laragon (base de donnée)
    
 2. ouvrire pycharm (code python, html, css, java, js)
+   
+3. suivre les étapes indiquez par Monsieur Maccaud le beau gosse dans ce lien https://info164.github.io/doc164ver1/index.html
   
-3. une fois l'étapes (1/2) accomplie. un travail personel va devoir être fait pour cordonner votre DB avec votre code, tout cela pour faire créer un interface graphique entre vous et l'utilisateur.
+4. une fois l'étapes (1/2) accomplie. un travail personel avec la documentation de Monsieur Maccaud va devoir être fait pour cordonner votre DB avec votre code (site), tout cela pour faire créer un interface graphique entre vous et l'utilisateur.
 
-4. une fois toutes les étapes accomplie, oubliez pas de faire un commit and push depuis pycharm sur github, pour ne perdre aucune donnée.
+5. une fois toutes les étapes accomplie, oubliez pas de faire un commit and push depuis pycharm sur github, pour ne perdre aucune donnée. --> https://github.com/
 
 
 
